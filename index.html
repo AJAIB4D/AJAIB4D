@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Bola Jatuh</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 { margin-top: 12px; }
+
+    #ui {
+      margin-top: 6px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      background: #22c55e;
+      color: #052e16;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 6px;
+      min-height: 20px;
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    /* === MESIN PLINKO === */
+    #game-wrapper {
+      position: relative;
+      width: 380px;
+      padding: 14px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ef4444, #991b1b);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      margin-top: 10px;
+    }
+
+    #game-area {
+      width: 360px;
+      height: 460px;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      background: url("bg_world.png") center/cover no-repeat;
+    }
+
+    #slots-ui {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .slot-box {
+      height: 42px;
+      border-radius: 6px;
+      background: #020617;
+      border: 2px solid #334155;
+      color: #a5b4fc;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #rewardAnim {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s ease;
+      z-index: 99;
+    }
+
+    #rewardAnim.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body>
+  <h2>🎯 Game Bola Jatuh Berhadiah AJAIB4D</h2>
+
+  <div id="ui">
+    <button id="dropBtn">Jatuhkan Bola</button>
+  </div>
+  <div id="result"></div>
+
+  <div id="game-wrapper">
+    <div id="game-area">
+      <img id="rewardAnim">
+    </div>
+
+    <div id="slots-ui">
+      <div class="slot-box">+10</div>
+      <div class="slot-box">+25</div>
+      <div class="slot-box">+50</div>
+      <div class="slot-box">+100</div>
+      <div class="slot-box">ZONK</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.js"></script>
+
+  <script>
+    let sceneRef;
+    let ball;
+
+    const prizes = [
+      { label: '+10 Poin', img: 'reward10.png' },
+      { label: '+25 Poin', img: 'reward25.png' },
+      { label: '+50 Poin', img: 'reward50.png' },
+      { label: '+100 Poin', img: 'reward100.png' },
+      { label: 'Zonk', img: 'zonk.png' },
+    ];
+
+    const config = {
+      type: Phaser.AUTO,
+      width: 360,
+      height: 460,
+      parent: 'game-area',
+      transparent: true,
+      physics: {
+        default: 'matter',
+        matter: { gravity: { y: 1 } }
+      },
+      scene: { preload, create }
+    };
+
+    const game = new Phaser.Game(config);
+
+    function preload() {
+      this.load.image('ball', 'ball.png');
+      this.load.image('pin', 'pin.png');
+      this.load.image('front', 'bg_character.png');
+    }
+
+    function create() {
+      sceneRef = this;
+
+      this.add.image(180, 230, 'front').setAlpha(0.5);
+
+      this.matter.add.rectangle(180, 460, 360, 20, { isStatic: true });
+      this.matter.add.rectangle(0, 230, 20, 460, { isStatic: true });
+      this.matter.add.rectangle(360, 230, 20, 460, { isStatic: true });
+
+      const rows = 6;
+      const cols = 6;
+      const startY = 110;
+      const gapX = 50;
+      const gapY = 50;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const offset = (r % 2 === 0) ? 25 : 0;
+          const x = 60 + c * gapX + offset;
+          const y = startY + r * gapY;
+
+          const peg = this.matter.add.image(x, y, 'pin', null, { isStatic: true });
+          peg.setScale(0.35);
+        }
+      }
+
+      const slotWidth = 72;
+      const startX = 40;
+
+      prizes.forEach((p, i) => {
+        const x = startX + i * slotWidth;
+        this.matter.add.rectangle(x, 430, slotWidth - 6, 24, {
+          isStatic: true,
+          label: 'slot-' + i
+        });
+      });
+
+      this.matter.world.on('collisionstart', (event) => {
+        event.pairs.forEach(pair => {
+          const labels = [pair.bodyA.label, pair.bodyB.label];
+          const slotLabel = labels.find(l => l && l.startsWith('slot-'));
+          const hitBall = labels.includes('ball');
+
+          if (slotLabel && hitBall) {
+            const i = parseInt(slotLabel.split('-')[1]);
+            const prize = prizes[i];
+            showResult(prize);
+            if (ball) { ball.destroy(); ball = null; }
+          }
+        });
+      });
+    }
+
+    document.getElementById('dropBtn').onclick = function () {
+      if (!sceneRef || ball) return;
+
+      const rng = Math.floor(Math.random() * prizes.length);
+      const x = 60 + rng * 72 + (Math.random() * 20 - 10);
+
+      const img = sceneRef.matter.add.image(x, 40, 'ball', null, {
+        restitution: 0.6,
+        label: 'ball'
+      });
+      img.setScale(0.35);
+      ball = img;
+
+      document.getElementById('result').textContent = 'Bola dijatuhkan...';
+    };
+
+    function showResult(prize) {
+      const el = document.getElementById('rewardAnim');
+      el.src = prize.img;
+      el.classList.remove('show');
+      void el.offsetWidth;
+      el.classList.add('show');
+
+      document.getElementById('result').textContent =
+        `Kamu mendapatkan ${prize.label}`;
+
+      setTimeout(() => el.classList.remove('show'), 1200);
+    }
+  </script>
+</body>
+</html>
