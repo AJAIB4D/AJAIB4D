@@ -1,239 +1,232 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Game Bola Jatuh</title>
-  <style>
-    body {
-      margin: 0;
-      background: #0f172a;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+<meta charset="UTF-8">
+<title>AJAIB4D Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+body{margin:0;background:#fff;color:#0b1a2b;overflow:hidden}
+.main{filter:blur(8px);pointer-events:none}
+.container{max-width:1100px;margin:40px auto;padding:0 20px}
+h1{text-align:center;margin-bottom:5px}
+.subtitle{text-align:center;font-size:13px;color:#0b3a6b;margin-bottom:30px}
 
-    h2 { margin-top: 12px; }
+.panel{display:grid;grid-template-columns:1fr 300px;gap:20px}
+.left{border-radius:12px;overflow:hidden;border:2px solid #1e90ff;display:flex;flex-direction:column}
+.left .areas{display:flex;height:420px}
+.left textarea{
+  width:100%;height:100%;border:none;padding:15px;font-size:14px;resize:none;outline:none
+}
+.left .areas textarea{flex:1}
+.left .areas.hidden textarea:nth-child(2){display:none}
 
-    #ui {
-      margin-top: 6px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
+.copy{background:#0b2f5f;color:#fff;text-align:center;padding:12px;cursor:pointer}
 
-    button {
-      padding: 10px 16px;
-      border-radius: 10px;
-      border: none;
-      background: #22c55e;
-      color: #052e16;
-      font-weight: bold;
-      cursor: pointer;
-    }
+.right{background:#eef8ff;border-radius:12px;padding:20px}
+.right button{width:100%;padding:12px;margin-bottom:12px;border:none;border-radius:6px;background:#00a8ff;color:#fff;font-size:14px;cursor:pointer}
+.right .upper{background:#1e90ff}
+.right .clear{background:none;color:red}
 
-    #result {
-      margin-top: 6px;
-      min-height: 20px;
-      color: #facc15;
-      font-weight: bold;
-    }
+.translate-box{display:none;margin-bottom:12px}
+.translate-box select{
+  width:100%;padding:8px;margin-bottom:6px;border-radius:6px;border:1px solid #1e90ff
+}
 
-    /* === MESIN PLINKO === */
-    #game-wrapper {
-      position: relative;
-      width: 380px;
-      padding: 14px;
-      border-radius: 22px;
-      background: linear-gradient(180deg, #ef4444, #991b1b);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-      margin-top: 10px;
-    }
+/* LOGIN */
+.overlay{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.6);backdrop-filter:blur(4px);
+  z-index:10;
+}
+.login-box{
+  background:#fff;padding:30px;border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  text-align:center;min-width:300px
+}
+.login-box input{
+  width:100%;padding:12px;border:2px solid #1e90ff;border-radius:8px;outline:none;margin-bottom:10px
+}
+.login-box button{
+  width:100%;padding:12px;border:none;border-radius:8px;background:#1e90ff;color:#fff;cursor:pointer
+}
+.status{font-size:13px;margin-top:8px}
 
-    #game-area {
-      width: 360px;
-      height: 460px;
-      border-radius: 14px;
-      overflow: hidden;
-      position: relative;
-      background: url("bg_world.png") center/cover no-repeat;
-    }
-
-    #slots-ui {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .slot-box {
-      height: 42px;
-      border-radius: 6px;
-      background: #020617;
-      border: 2px solid #334155;
-      color: #a5b4fc;
-      font-size: 11px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #rewardAnim {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) scale(0.5);
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.4s ease;
-      z-index: 99;
-    }
-
-    #rewardAnim.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-  </style>
+/* LEDAKAN */
+.boom{
+  position:fixed;inset:0;display:none;
+  align-items:center;justify-content:center;
+  background:#000;z-index:20;
+}
+.boom .title{
+  color:#fff;font-size:64px;font-weight:bold;
+  text-shadow:0 0 20px #00f,0 0 40px #0ff,0 0 80px #fff;
+  animation:pulse 1.2s ease-out forwards;
+}
+.lightning{
+  position:absolute;inset:0;
+  background:
+    linear-gradient(120deg, transparent 45%, #8ff 50%, transparent 55%),
+    linear-gradient(300deg, transparent 45%, #fff 50%, transparent 55%);
+  opacity:0;
+  animation:flash .15s linear infinite;
+}
+@keyframes flash{0%,90%{opacity:0}92%{opacity:1}100%{opacity:0}}
+@keyframes pulse{0%{transform:scale(.2);opacity:0}40%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:0}}
+</style>
 </head>
 <body>
-  <h2>🎯 Game Bola Jatuh Berhadiah AJAIB4D</h2>
 
-  <div id="ui">
-    <button id="dropBtn">Jatuhkan Bola</button>
+<div class="overlay" id="overlay">
+  <div class="login-box">
+    <input id="uid" placeholder="Ketik aja AJAIB4D" onkeydown="if(event.key==='Enter') login()">
+    <button onclick="login()">Masuk</button>
+    <div class="status" id="status"></div>
   </div>
-  <div id="result"></div>
+</div>
 
-  <div id="game-wrapper">
-    <div id="game-area">
-      <img id="rewardAnim">
-    </div>
+<div class="boom" id="boom">
+  <div class="lightning"></div>
+  <div class="title">AJAIB4D</div>
+</div>
 
-    <div id="slots-ui">
-      <div class="slot-box">+10</div>
-      <div class="slot-box">+25</div>
-      <div class="slot-box">+50</div>
-      <div class="slot-box">+100</div>
-      <div class="slot-box">ZONK</div>
+<div class="main" id="main">
+  <div class="container">
+    <h1>Convert Case</h1>
+    <div class="subtitle">PAKE AJA KALO MEMBANTU (AJAIB4D)</div>
+
+    <div class="panel">
+      <div class="left">
+        <div class="areas hidden" id="areas">
+          <textarea id="textA" placeholder="Tempel di sini dek..."></textarea>
+          <textarea id="textB" placeholder="Hasil translate..."></textarea>
+        </div>
+        <div class="copy" onclick="copyText()">LANGSUNG COPY SEMUA</div>
+      </div>
+
+      <div class="right">
+        <button onclick="generate()">BUAT PREDIKSI TOGEL</button>
+        <button class="upper" onclick="toUpper()">GANTI HURUF BESAR</button>
+        <button onclick="toggleTranslate()">TRANSLATE BAHASA</button>
+
+        <div class="translate-box" id="tbox">
+          <select id="from">
+            <option value="id">INDONESIA</option>
+            <option value="en">ENGLISH</option>
+            <option value="km">KHMER</option>
+          </select>
+          <select id="to">
+            <option value="en">ENGLISH</option>
+            <option value="id">INDONESIA</option>
+            <option value="km">KHMER</option>
+          </select>
+          <button onclick="doTranslate()">PROSES TRANSLATE</button>
+        </div>
+
+        <button class="clear" onclick="clearAll()">Clear</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.js"></script>
+<script>
+const uidEl = document.getElementById('uid');
+const overlayEl = document.getElementById('overlay');
+const mainEl = document.getElementById('main');
+const boomEl = document.getElementById('boom');
+const statusEl = document.getElementById('status');
+const areas = document.getElementById('areas');
+const textA = document.getElementById('textA');
+const textB = document.getElementById('textB');
+const tbox = document.getElementById('tbox');
 
-  <script>
-    let sceneRef;
-    let ball;
+function login(){
+  const v = uidEl.value.trim().toLowerCase();
+  if(v === 'ajaib4d'){
+    statusEl.style.color='green';
+    statusEl.textContent='Akses diterima';
+    overlayEl.style.display='none';
+    mainEl.style.filter='none';
+    mainEl.style.pointerEvents='auto';
+    boomEl.style.display='flex';
+    setTimeout(()=>boomEl.style.display='none',1200);
+  }else{
+    statusEl.style.color='red';
+    statusEl.textContent='USER ID salah';
+  }
+}
 
-    const prizes = [
-      { label: '+10 Poin', img: 'reward10.png' },
-      { label: '+25 Poin', img: 'reward25.png' },
-      { label: '+50 Poin', img: 'reward50.png' },
-      { label: '+100 Poin', img: 'reward100.png' },
-      { label: 'Zonk', img: 'zonk.png' },
-    ];
+function r(n){return Math.floor(Math.random()*n)}
+function d(){return r(10)}
+function two(){return ''+d()+d()}
+const shio=["TIKUS","KERBAU","HARIMAU","KELINCI","NAGA","ULAR","KUDA","KAMBING","MONYET","AYAM","ANJING","BABI"];
+const pasaran=["ETAWAH","SYDNEY","TAIPING","SINGAPORE","HONGKONG","TOTO WUHAN","HONGKONG SIANG","MALAYSIA"];
 
-    const config = {
-      type: Phaser.AUTO,
-      width: 360,
-      height: 460,
-      parent: 'game-area',
-      transparent: true,
-      physics: {
-        default: 'matter',
-        matter: { gravity: { y: 1 } }
-      },
-      scene: { preload, create }
-    };
+function block(name){
+  let main=[d(),d(),d(),d()];
+  let bbfs=[main[0],main[1],main[2],d(),main[3]];
+  let colok=[main[0],main[3]];
+  let top=[]; for(let i=0;i<25;i++) top.push(two());
+  let panas=[top[0],top[1],top[2]];
+  return `PREDIKSI > ${name}
+ANGKA MAIN : ${main.join(' ')}
+BBFS : ${bbfs.join(' ')}
+SHIO : ${shio[r(shio.length)]}
+COLOK ANGKA : ${colok.join(' ')}
 
-    const game = new Phaser.Game(config);
+TOP 2D :
+${top.slice(0,5).join(' ')}
+${top.slice(5,10).join(' ')}
+${top.slice(10,15).join(' ')}
+${top.slice(15,20).join(' ')}
+${top.slice(20,25).join(' ')}
 
-    function preload() {
-      this.load.image('ball', 'ball.png');
-      this.load.image('pin', 'pin.png');
-      this.load.image('front', 'bg_character.png');
-    }
+ANGKA PANASNYA : ${panas.join(' ')}
+----------------------------`;
+}
 
-    function create() {
-      sceneRef = this;
+function generate(){
+  let out=`PREDIKSI GACOR AJAIB4D^^\n${new Date().toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).toUpperCase()}\n\n`;
+  pasaran.forEach(p=>out+=block(p)+"\n");
+  textA.value = out;
+}
 
-      this.add.image(180, 230, 'front').setAlpha(0.5);
+function toUpper(){
+  textA.value = textA.value.toUpperCase();
+}
 
-      this.matter.add.rectangle(180, 460, 360, 20, { isStatic: true });
-      this.matter.add.rectangle(0, 230, 20, 460, { isStatic: true });
-      this.matter.add.rectangle(360, 230, 20, 460, { isStatic: true });
+function toggleTranslate(){
+  areas.classList.remove('hidden');
+  tbox.style.display = 'block';
+}
 
-      const rows = 6;
-      const cols = 6;
-      const startY = 110;
-      const gapX = 50;
-      const gapY = 50;
+async function doTranslate(){
+  const q = textA.value.trim();
+  if(!q){ alert('Teks kosong'); return; }
+  const from = document.getElementById('from').value;
+  const to = document.getElementById('to').value;
 
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const offset = (r % 2 === 0) ? 25 : 0;
-          const x = 60 + c * gapX + offset;
-          const y = startY + r * gapY;
+  try{
+    const res = await fetch('https://libretranslate.de/translate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({q,source:from,target:to,format:'text'})
+    });
+    const data = await res.json();
+    textB.value = data.translatedText;
+  }catch(e){
+    alert('Gagal translate. Periksa koneksi internet.');
+  }
+}
 
-          const peg = this.matter.add.image(x, y, 'pin', null, { isStatic: true });
-          peg.setScale(0.35);
-        }
-      }
+function clearAll(){ textA.value=''; textB.value='' }
 
-      const slotWidth = 72;
-      const startX = 40;
-
-      prizes.forEach((p, i) => {
-        const x = startX + i * slotWidth;
-        this.matter.add.rectangle(x, 430, slotWidth - 6, 24, {
-          isStatic: true,
-          label: 'slot-' + i
-        });
-      });
-
-      this.matter.world.on('collisionstart', (event) => {
-        event.pairs.forEach(pair => {
-          const labels = [pair.bodyA.label, pair.bodyB.label];
-          const slotLabel = labels.find(l => l && l.startsWith('slot-'));
-          const hitBall = labels.includes('ball');
-
-          if (slotLabel && hitBall) {
-            const i = parseInt(slotLabel.split('-')[1]);
-            const prize = prizes[i];
-            showResult(prize);
-            if (ball) { ball.destroy(); ball = null; }
-          }
-        });
-      });
-    }
-
-    document.getElementById('dropBtn').onclick = function () {
-      if (!sceneRef || ball) return;
-
-      const rng = Math.floor(Math.random() * prizes.length);
-      const x = 60 + rng * 72 + (Math.random() * 20 - 10);
-
-      const img = sceneRef.matter.add.image(x, 40, 'ball', null, {
-        restitution: 0.6,
-        label: 'ball'
-      });
-      img.setScale(0.35);
-      ball = img;
-
-      document.getElementById('result').textContent = 'Bola dijatuhkan...';
-    };
-
-    function showResult(prize) {
-      const el = document.getElementById('rewardAnim');
-      el.src = prize.img;
-      el.classList.remove('show');
-      void el.offsetWidth;
-      el.classList.add('show');
-
-      document.getElementById('result').textContent =
-        `Kamu mendapatkan ${prize.label}`;
-
-      setTimeout(() => el.classList.remove('show'), 1200);
-    }
-  </script>
+function copyText(){
+  (textB.value ? textB : textA).select();
+  document.execCommand('copy');
+  alert('Tersalin!');
+}
+</script>
 </body>
 </html>
