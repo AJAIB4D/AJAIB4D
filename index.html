@@ -15,9 +15,7 @@ h1{text-align:center;margin-bottom:5px}
 .panel{display:grid;grid-template-columns:1fr 300px;gap:20px}
 .left{border-radius:12px;overflow:hidden;border:2px solid #1e90ff;display:flex;flex-direction:column}
 .left .areas{display:flex;height:420px}
-.left textarea{
-  width:100%;height:100%;border:none;padding:15px;font-size:14px;resize:none;outline:none
-}
+.left textarea{width:100%;height:100%;border:none;padding:15px;font-size:14px;resize:none;outline:none}
 .left .areas textarea{flex:1}
 .left .areas.hidden textarea:nth-child(2){display:none}
 
@@ -122,6 +120,7 @@ h1{text-align:center;margin-bottom:5px}
             <option value="km">KHMER</option>
           </select>
           <button onclick="doTranslate()">PROSES TRANSLATE</button>
+          <button onclick="cancelTranslate()" style="background:#ccc;color:#000;margin-top:6px">CANCEL TRANSLATE</button>
         </div>
 
         <button class="clear" onclick="clearAll()">Clear</button>
@@ -204,20 +203,34 @@ function toggleTranslate(){
 async function doTranslate(){
   const q = textA.value.trim();
   if(!q){ alert('Teks kosong'); return; }
+
   const from = document.getElementById('from').value;
   const to = document.getElementById('to').value;
 
+  const payload = { q:q, source:from, target:to, format:'text' };
+  const targetUrl = 'https://translate.argosopentech.com/translate';
+
   try{
-    const res = await fetch('https://libretranslate.de/translate',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({q,source:from,target:to,format:'text'})
-    });
+    const res = await fetch(
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl),
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      }
+    );
+    if(!res.ok) throw new Error('HTTP Error');
     const data = await res.json();
     textB.value = data.translatedText;
   }catch(e){
-    alert('Gagal translate. Periksa koneksi internet.');
+    alert('Translate gagal. Server translate sedang dibatasi.');
   }
+}
+
+function cancelTranslate(){
+  areas.classList.add('hidden');
+  tbox.style.display = 'none';
+  textB.value = '';
 }
 
 function clearAll(){ textA.value=''; textB.value='' }
